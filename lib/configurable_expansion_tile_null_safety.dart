@@ -145,7 +145,7 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
 
     _headerColor = _controller.drive(_headerColorTween.chain(widget.headerAnimationTween ?? ConfigurableExpansionTile._easeInTween));
     _headerColorTween.end = widget.headerBackgroundColorEnd ?? widget.headerBackgroundColorStart;
-    _isExpanded = PageStorage.of(context)?.readState(context) ?? widget.initiallyExpanded;
+    _isExpanded = PageStorage.of(context).readState(context) ?? widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
   }
 
@@ -171,7 +171,7 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
           });
         });
       }
-      PageStorage.of(context)?.writeState(context, _isExpanded);
+      PageStorage.of(context).writeState(context, _isExpanded);
     });
     if (widget.onExpansionChanged != null) widget.onExpansionChanged!(_isExpanded);
   }

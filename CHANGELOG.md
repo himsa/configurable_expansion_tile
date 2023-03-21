@@ -1,3 +1,9 @@
+## 3.2.0
+
+* fix dart hints
+* upgrade to flutter 3.7.7
+
+
 ## 3.1.1
 
 * doc update

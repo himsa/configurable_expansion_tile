@@ -35,8 +35,11 @@ class ConfigurableExpansionTile extends StatefulWidget {
       this.animatedWidgetTurnTween,
       this.animatedWidgetTween,
       this.childrenBody,
-      this.enableExpanded = true})
+      this.enableExpanded = true,
+      this.controller})
       : super(key: key);
+
+  final ConfigurableExpansionTileController? controller;
 
   /// Called when the tile expands or collapses.
   ///
@@ -44,8 +47,6 @@ class ConfigurableExpansionTile extends StatefulWidget {
   /// true. When the tile starts collapsing, this function is called with
   /// the value false.
   final ValueChanged<bool>? onExpansionChanged;
-
-
 
   /// Whether to enable&disable the expansion function
   ///
@@ -110,16 +111,21 @@ class ConfigurableExpansionTile extends StatefulWidget {
   ///  [animatedWidgetFollowingHeader] and [animatedWidgetPrecedingHeader] transition tween
   final Animatable<double>? animatedWidgetTween;
 
-  static final Animatable<double> _easeInTween = CurveTween(curve: Curves.easeIn);
-  static final Animatable<double> _halfTween = Tween<double>(begin: 0.0, end: 0.5);
+  static final Animatable<double> _easeInTween =
+      CurveTween(curve: Curves.easeIn);
+  static final Animatable<double> _halfTween =
+      Tween<double>(begin: 0.0, end: 0.5);
 
-  static final Animatable<double> _easeOutTween = CurveTween(curve: Curves.easeOut);
+  static final Animatable<double> _easeOutTween =
+      CurveTween(curve: Curves.easeOut);
 
   @override
-  ConfigurableExpansionTileState createState() => ConfigurableExpansionTileState();
+  ConfigurableExpansionTileState createState() =>
+      ConfigurableExpansionTileState();
 }
 
-class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> with SingleTickerProviderStateMixin {
+class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _iconTurns;
   late Animation<double> _heightFactor;
@@ -137,16 +143,24 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
     super.initState();
     _controller = AnimationController(duration: widget.kExpand, vsync: this);
     _heightFactor = _controller.drive(ConfigurableExpansionTile._easeInTween);
-    _iconTurns = _controller.drive((widget.animatedWidgetTurnTween ?? ConfigurableExpansionTile._halfTween)
-        .chain(widget.animatedWidgetTween ?? ConfigurableExpansionTile._easeInTween));
+    _iconTurns = _controller.drive(
+        (widget.animatedWidgetTurnTween ?? ConfigurableExpansionTile._halfTween)
+            .chain(widget.animatedWidgetTween ??
+                ConfigurableExpansionTile._easeInTween));
 
-    _borderColor = _controller.drive(_borderColorTween.chain(widget.borderAnimationTween ?? ConfigurableExpansionTile._easeOutTween));
+    _borderColor = _controller.drive(_borderColorTween.chain(
+        widget.borderAnimationTween ??
+            ConfigurableExpansionTile._easeOutTween));
     _borderColorTween.end = widget.borderColorEnd;
 
-    _headerColor = _controller.drive(_headerColorTween.chain(widget.headerAnimationTween ?? ConfigurableExpansionTile._easeInTween));
-    _headerColorTween.end = widget.headerBackgroundColorEnd ?? widget.headerBackgroundColorStart;
-    _isExpanded = PageStorage.of(context).readState(context) ?? widget.initiallyExpanded;
+    _headerColor = _controller.drive(_headerColorTween.chain(
+        widget.headerAnimationTween ?? ConfigurableExpansionTile._easeInTween));
+    _headerColorTween.end =
+        widget.headerBackgroundColorEnd ?? widget.headerBackgroundColorStart;
+    _isExpanded =
+        PageStorage.of(context).readState(context) ?? widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
+    widget.controller?.bind(this);
   }
 
   @override
@@ -156,7 +170,7 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
   }
 
   void _handleTap() {
-    if(!widget.enableExpanded){
+    if (!widget.enableExpanded) {
       return;
     }
     setState(() {
@@ -173,17 +187,22 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
       }
       PageStorage.of(context).writeState(context, _isExpanded);
     });
-    if (widget.onExpansionChanged != null) widget.onExpansionChanged!(_isExpanded);
+    if (widget.onExpansionChanged != null)
+      widget.onExpansionChanged!(_isExpanded);
   }
 
   Widget _buildChildren(BuildContext context, Widget? child) {
     final Color borderSideColor = _borderColor.value ?? widget.borderColorStart;
-    final Color headerColor = _headerColor?.value ?? widget.headerBackgroundColorStart;
+    final Color headerColor =
+        _headerColor?.value ?? widget.headerBackgroundColorStart;
     return Container(
       decoration: BoxDecoration(
           border: Border(
-        top: BorderSide(color: widget.topBorderOn ? borderSideColor : Colors.transparent),
-        bottom: BorderSide(color: widget.bottomBorderOn ? borderSideColor : Colors.transparent),
+        top: BorderSide(
+            color: widget.topBorderOn ? borderSideColor : Colors.transparent),
+        bottom: BorderSide(
+            color:
+                widget.bottomBorderOn ? borderSideColor : Colors.transparent),
       )),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -198,12 +217,14 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
                     children: <Widget>[
                       RotationTransition(
                         turns: _iconTurns,
-                        child: widget.animatedWidgetPrecedingHeader ?? Container(),
+                        child:
+                            widget.animatedWidgetPrecedingHeader ?? Container(),
                       ),
                       _getHeader(),
                       RotationTransition(
                         turns: _iconTurns,
-                        child: widget.animatedWidgetFollowingHeader ?? Container(),
+                        child:
+                            widget.animatedWidgetFollowingHeader ?? Container(),
                       )
                     ],
                   ))),
@@ -236,7 +257,37 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile> wi
       child: closed
           ? null
           : widget.childrenBody ??
-              Container(color: widget.expandedBackgroundColor ?? Colors.transparent, child: SizedBox()),
+              Container(
+                  color: widget.expandedBackgroundColor ?? Colors.transparent,
+                  child: SizedBox()),
     );
+  }
+}
+
+class ConfigurableExpansionTileController {
+  late ConfigurableExpansionTileState _state;
+
+  // Bind the controller to the internal state of the tile
+  void bind(ConfigurableExpansionTileState state) {
+    _state = state;
+  }
+
+  // Expand the tile
+  void expand() {
+    if (!_state._isExpanded) {
+      _state._handleTap();
+    }
+  }
+
+  // Collapse the tile
+  void collapse() {
+    if (_state._isExpanded) {
+      _state._handleTap();
+    }
+  }
+
+  // Toggle the tile expansion state
+  void toggle() {
+    _state._handleTap();
   }
 }

@@ -2,120 +2,63 @@ library configurable_expansion_tile;
 
 import 'package:flutter/material.dart';
 
-/// A configurable Expansion Tile edited from the flutter material implementation
-/// that allows for customization of most of the behaviour. Includes providing colours,
-/// replacement widgets on expansion, and  animating preceding/following widgets.
-///
-/// See:
-/// [ExpansionTile]
 class ConfigurableExpansionTile extends StatefulWidget {
-  /// Creates a a [Widget] with an optional [animatedWidgetPrecedingHeader] and/or
-  /// [animatedWidgetFollowingHeader]. Optionally, the header can change on the
-  /// expanded state by proving a [Widget] in [headerExpanded]. Colors can also
-  /// be specified for the animated transitions/states. [childrenBody] are revealed
-  /// when the expansion tile is expanded.
-  const ConfigurableExpansionTile(
-      {Key? key,
-      this.headerBackgroundColorStart = Colors.transparent,
-      this.onExpansionChanged,
-      this.initiallyExpanded = false,
-      required this.header,
-      this.animatedWidgetFollowingHeader,
-      this.animatedWidgetPrecedingHeader,
-      this.expandedBackgroundColor,
-      this.borderColorStart = Colors.transparent,
-      this.borderColorEnd = Colors.transparent,
-      this.topBorderOn = true,
-      this.bottomBorderOn = true,
-      this.kExpand = const Duration(milliseconds: 200),
-      this.headerBackgroundColorEnd,
-      this.headerExpanded,
-      this.headerAnimationTween,
-      this.borderAnimationTween,
-      this.animatedWidgetTurnTween,
-      this.animatedWidgetTween,
-      this.childrenBody,
-      this.enableExpanded = true,
-      this.controller})
-      : super(key: key);
+  const ConfigurableExpansionTile({
+    Key? key,
+    this.headerBackgroundColorStart = Colors.transparent,
+    this.onExpansionChanged,
+    this.initiallyExpanded = false,
+    required this.header,
+    this.animatedWidgetFollowingHeader,
+    this.animatedWidgetPrecedingHeader,
+    this.expandedBackgroundColor,
+    this.borderColorStart = Colors.transparent,
+    this.borderColorEnd = Colors.transparent,
+    this.topBorderOn = true,
+    this.bottomBorderOn = true,
+    this.kExpand = const Duration(milliseconds: 200),
+    this.headerBackgroundColorEnd,
+    this.headerExpanded,
+    this.headerAnimationTween,
+    this.borderAnimationTween,
+    this.controller,
+    this.animatedWidgetTurnTween,
+    this.animatedWidgetTween,
+    this.childrenBody,
+    this.enableExpanded = true,
+  }) : super(key: key);
 
-  final ConfigurableExpansionTileController? controller;
-
-  /// Called when the tile expands or collapses.
-  ///
-  /// When the tile starts expanding, this function is called with the value
-  /// true. When the tile starts collapsing, this function is called with
-  /// the value false.
   final ValueChanged<bool>? onExpansionChanged;
-
-  /// Whether to enable&disable the expansion function
-  ///
-  /// Default is [true]
-  ///
-  /// If it is false, the expansion operation cannot be performed
   final bool enableExpanded;
-
-  /// The widgets that are displayed when the tile expands.
   final Widget? childrenBody;
-
-  /// The color of the header, useful to set if your animating widgets are
-  /// larger than the header widget, or you want an animating color, in which
-  /// case your header widget should be transparent
   final Color headerBackgroundColorStart;
-
-  /// The [Color] the header will transition to on expand
   final Color? headerBackgroundColorEnd;
-
-  /// The [Color] of the background of the [childrenBody] when expanded
   final Color? expandedBackgroundColor;
-
-  /// Specifies if the list tile is initially expanded (true) or collapsed (false, the default).
   final bool initiallyExpanded;
-
-  /// The header for the expansion tile
-  final Widget header;
-
-  /// An optional widget to replace [header] with if the list is expanded
+  final ConfigurableExpansionTileController? controller;
+  final Widget Function(
+    bool isExpanded,
+    Animation<double> iconTurns,
+    Animation<double> heightFactor,
+    ConfigurableExpansionTileController controller,
+  ) header;
   final Widget? headerExpanded;
-
-  /// A widget to rotate following the [header] (ie an arrow)
   final Widget? animatedWidgetFollowingHeader;
-
-  /// A widget to rotate preceding the [header] (ie an arrow)
   final Widget? animatedWidgetPrecedingHeader;
-
-  /// The duration of the animations
   final Duration kExpand;
-
-  /// The color the border start, before the list is expanded
   final Color borderColorStart;
-
-  /// The color of the border at the end of animation, after the list is expanded
   final Color borderColorEnd;
-
-  /// Turns the top border of the list is on/off
   final bool topBorderOn;
-
-  /// Turns the bottom border of the list on/off
   final bool bottomBorderOn;
-
-  /// Header transition tween
   final Animatable<double>? headerAnimationTween;
-
-  /// Border animation tween
   final Animatable<double>? borderAnimationTween;
-
-  /// Tween for turning [animatedWidgetFollowingHeader] and [animatedWidgetPrecedingHeader]
   final Animatable<double>? animatedWidgetTurnTween;
-
-  ///  [animatedWidgetFollowingHeader] and [animatedWidgetPrecedingHeader] transition tween
   final Animatable<double>? animatedWidgetTween;
 
   static final Animatable<double> _easeInTween =
       CurveTween(curve: Curves.easeIn);
   static final Animatable<double> _halfTween =
       Tween<double>(begin: 0.0, end: 0.5);
-
   static final Animatable<double> _easeOutTween =
       CurveTween(curve: Curves.easeOut);
 
@@ -129,6 +72,8 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
   late AnimationController _controller;
   late Animation<double> _iconTurns;
   late Animation<double> _heightFactor;
+  late ConfigurableExpansionTileController _stateController =
+      widget.controller ?? ConfigurableExpansionTileController();
 
   late Animation<Color?> _borderColor;
   Animation<Color?>? _headerColor;
@@ -138,9 +83,14 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
 
   bool _isExpanded = false;
 
+  void _bindController() {
+    _stateController.bind(this);
+  }
+
   @override
   void initState() {
     super.initState();
+    _bindController();
     _controller = AnimationController(duration: widget.kExpand, vsync: this);
     _heightFactor = _controller.drive(ConfigurableExpansionTile._easeInTween);
     _iconTurns = _controller.drive(
@@ -160,7 +110,6 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
     _isExpanded =
         PageStorage.of(context).readState(context) ?? widget.initiallyExpanded;
     if (_isExpanded) _controller.value = 1.0;
-    widget.controller?.bind(this);
   }
 
   @override
@@ -242,9 +191,12 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
   /// Retrieves the header to display for the tile, derived from [_isExpanded] state
   Widget _getHeader() {
     if (!_isExpanded) {
-      return widget.header;
+      return widget.header(
+          _isExpanded, _iconTurns, _heightFactor, _stateController);
     } else {
-      return widget.headerExpanded ?? widget.header;
+      return widget.headerExpanded ??
+          widget.header(
+              _isExpanded, _iconTurns, _heightFactor, _stateController);
     }
   }
 
@@ -262,32 +214,45 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
                   child: SizedBox()),
     );
   }
+
+  @override
+  void didUpdateWidget(covariant ConfigurableExpansionTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      _bindController();
+    }
+  }
 }
 
+/// The controller allows programmatic control over the expansion and collapse
+/// of the ConfigurableExpansionTile.
 class ConfigurableExpansionTileController {
-  late ConfigurableExpansionTileState _state;
+  late ConfigurableExpansionTileState state;
 
-  // Bind the controller to the internal state of the tile
+  // Bind the controller to the tile state
   void bind(ConfigurableExpansionTileState state) {
-    _state = state;
+    this.state = state;
   }
 
-  // Expand the tile
+  // Programmatically expand the tile
   void expand() {
-    if (!_state._isExpanded) {
-      _state._handleTap();
+    if (!state._isExpanded) {
+      state._handleTap();
     }
   }
 
-  // Collapse the tile
+  // Programmatically collapse the tile
   void collapse() {
-    if (_state._isExpanded) {
-      _state._handleTap();
+    if (state._isExpanded) {
+      state._handleTap();
     }
   }
 
-  // Toggle the tile expansion state
+  // Programmatically toggle the tile
   void toggle() {
-    _state._handleTap();
+    state._handleTap();
   }
+
+  // Get the current expansion state (true if expanded, false otherwise)
+  bool get isExpanded => state._isExpanded;
 }

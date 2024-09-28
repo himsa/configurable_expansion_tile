@@ -218,6 +218,19 @@ class ConfigurableExpansionTileState extends State<ConfigurableExpansionTile>
   @override
   void didUpdateWidget(covariant ConfigurableExpansionTile oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.initiallyExpanded != widget.initiallyExpanded) {
+      setState(() {
+        _isExpanded = widget.initiallyExpanded;
+        if (_isExpanded) {
+          _controller.forward();
+        } else {
+          _controller.reverse();
+        }
+        PageStorage.of(context).writeState(context, _isExpanded);
+      });
+    }
+
     if (oldWidget.controller != widget.controller) {
       _bindController();
     }
